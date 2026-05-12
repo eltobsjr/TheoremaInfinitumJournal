@@ -1,0 +1,194 @@
+GUIA DE EDIÇÃO DO CSS — THEOREMA INFINITUM
+==========================================
+
+
+1. A EXTENSÃO STYLUS — TESTES EM TEMPO REAL
+--------------------------------------------
+
+O que é: Injeta CSS diretamente no navegador sem precisar salvar no OJS.
+Você vê as mudanças instantaneamente.
+
+Onde baixar:
+  - Chrome/Edge/Brave: chromewebstore.google.com -> pesquisar "Stylus" (by uso.plus / Stylus Team)
+  - Firefox: addons.mozilla.org -> pesquisar "Stylus"
+
+Como usar:
+  1. Instale a extensão
+  2. Acesse theoremainfinitum.com no navegador
+  3. Clique no ícone do Stylus na barra de extensões
+  4. Clique em "Write style for: theoremainfinitum.com"
+  5. Cole todo o conteúdo do arquivo theorema.css
+  6. Salve com Ctrl+S
+  7. Qualquer edição nesse campo reflete na página imediatamente ao salvar
+
+Para aplicar definitivamente:
+  OJS Admin -> Configurações -> Website -> Aparência -> "CSS Personalizado" -> cole o conteúdo -> Salvar
+
+
+2. ESTRUTURA GERAL DO ARQUIVO CSS
+-----------------------------------
+
+O arquivo está dividido em blocos comentados com /* --- */. A ordem é intencional:
+
+  GOOGLE FONTS          -> Importa as 4 fontes via URL
+  DESIGN TOKENS         -> Define todas as variáveis (cores, fontes, espaçamentos)
+  RESET / BASE          -> Tipografia base, antialiasing
+  GLOBAL TYPOGRAPHY     -> Estilos de texto globais (h1, h2, h3, p...)
+  STRUCTURAL WRAPPERS   -> Layout de largura total da página
+  MASTHEAD              -> Header com galáxia, logo, botões Registrar/Acesso
+  NAVIGATION            -> Barra preta de navegação
+  DROPDOWN              -> Menu suspenso dos itens de nav
+  MAIN CONTENT          -> Área central de conteúdo
+  FOOTER                -> Rodapé escuro
+  ARTICLE LISTING       -> Lista de artigos
+  ARTICLE PAGE          -> Página de leitura de artigo
+  FORMS / PAGINATION    -> Formulários, paginação
+  RESPONSIVE 1024px     -> Tablet
+  RESPONSIVE 768px      -> Mobile — bloco principal
+  RESPONSIVE 480px      -> Mobile pequeno
+  PRINT                 -> Impressão
+  REDUCED MOTION        -> Acessibilidade
+
+
+3. CLASSES OJS — ONDE CADA UMA APLICA ESTILO
+----------------------------------------------
+
+HEADER / MASTHEAD:
+
+  .pkp_head_wrapper           -> Container de todo o header
+                                 Imagem de galáxia, fundo, largura total
+
+  .pkp_site_name_wrapper      -> Envolve a área do logo
+                                 Fundo (transparente para a galáxia aparecer)
+
+  .pkp_site_name              -> Área do logo propriamente
+                                 Padding, alinhamento central, linhas brancas acima/abaixo
+
+  .pkp_site_name img          -> A imagem do logo
+                                 Tamanho máximo (max-height: 140px), sombra
+
+  .pkp_site_nav_toggle        -> Botão hambúrguer
+                                 Visível só no mobile via @media
+
+  .pkp_navigation_user        -> Botões "Registrar-se / Acesso"
+                                 Posição absoluta canto superior direito
+
+NAVEGAÇÃO:
+
+  .pkp_site_nav_menu                -> Container da nav inteira, largura total
+  .pkp_navigation_primary_row       -> Linha com nav + busca; hidden no mobile,
+                                       revelado com .pkp_site_nav_menu--isOpen
+  .pkp_navigation_primary_wrapper   -> Faixa preta da nav, padding lateral
+  .pkp_navigation_primary           -> <ul> dos itens de nav, flex row, centralizado
+  .pkp_navigation_primary > li > a  -> Cada link do menu, fonte mono, uppercase
+  .dropdown-menu                    -> Submenu suspenso, fundo preto, fade-in animado
+  .pkp_navigation_search_wrapper    -> Ícone de busca na nav, lado direito
+
+CONTEÚDO:
+
+  .pkp_structure_page           -> Container geral de toda a página
+  .pkp_structure_main           -> Área central (artigos, texto)
+  .pkp_structure_sidebar        -> Coluna lateral
+  .pkp_structure_footer_wrapper -> Rodapé escuro
+  .obj_article_summary          -> Cada card de artigo na listagem
+  .pkp_page_article             -> Página de leitura de artigo específico
+
+
+4. BREAKPOINTS — OS 3 PONTOS DE CORTE
+---------------------------------------
+
+  Desktop padrão   ->  sem @media  (sem limite de largura)
+           |
+  Tablet           ->  @media (max-width: 1024px)
+           |
+  Mobile           ->  @media (max-width: 768px)   <- PRINCIPAL
+           |
+  Mobile pequeno   ->  @media (max-width: 480px)
+
+REGRA IMPORTANTE:
+Qualquer propriedade dentro de um bloco @media sobrescreve a propriedade
+definida fora dele para telas menores que o limite.
+Fora do @media é o padrão (desktop).
+
+
+5. O BLOCO MOBILE (768px) — EXPLICAÇÃO COMPLETA
+-------------------------------------------------
+
+@media (max-width: 768px) {
+
+--- Seção 1 — Botões Registrar/Acesso ---
+  .pkp_navigation_user { right: var(--sp-3); top: var(--sp-2); }
+  .pkp_navigation_user a { font-size: 9px; padding: 6px 10px; }
+
+  Encolhe os botões para não sobrepor o hambúrguer.
+
+--- Seção 2 — Botão hambúrguer ---
+  .pkp_site_nav_toggle {
+      display: flex !important;   /* era display:none no desktop */
+      position: absolute;
+      top: var(--sp-3); left: var(--sp-4);
+      background: var(--canvas);   /* fundo branco */
+      border: 1.5px solid var(--accent);
+  }
+  .pkp_site_nav_toggle::before { content: '☰'; color: var(--accent); }
+  .pkp_site_nav_menu--isOpen .pkp_site_nav_toggle::before { content: '✕'; }
+
+  O display:flex revela o botão. O ::before injeta o ícone.
+  Quando o OJS adiciona a classe --isOpen, o ícone vira ✕.
+
+--- Seção 3 — Drawer do menu ---
+  .pkp_navigation_primary_row {
+      display: none !important;   /* escondido por padrão */
+      background: var(--ink);     /* fundo preto */
+  }
+  .pkp_site_nav_menu--isOpen .pkp_navigation_primary_row {
+      display: block !important;  /* aparece quando aberto */
+  }
+
+  O OJS adiciona/remove .pkp_site_nav_menu--isOpen via JavaScript
+  quando o hambúrguer é clicado. O CSS só precisa reagir à presença dessa classe.
+
+--- Seção 4 — Lista de itens em coluna ---
+  .pkp_navigation_primary { flex-direction: column; }
+  .pkp_navigation_primary > li > a { padding: 16px var(--sp-5); }
+
+  Muda o flex de row (desktop) para column (mobile), criando o menu vertical.
+
+--- Seção 5 — Dropdown sempre visível ---
+  .pkp_navigation_primary .dropdown-menu {
+      position: static;           /* sai do fluxo absoluto do desktop */
+      opacity: 1; visibility: visible;   /* sempre visível (sem hover) */
+  }
+
+  No desktop o dropdown aparece no hover. No mobile não existe hover,
+  então ele fica sempre aberto logo abaixo do item pai.
+
+--- Seção 6 — Busca abaixo do menu ---
+  .pkp_navigation_search_wrapper {
+      border-left: none;
+      border-top: 1px solid rgba(255,255,255,0.12);
+  }
+
+  Remove a borda esquerda (era separador horizontal no desktop)
+  e adiciona borda superior.
+
+}
+
+
+6. FLUXO DE TRABALHO PARA EDITAR
+----------------------------------
+
+  1. Identifique o elemento no navegador com DevTools (F12 -> inspetor)
+  2. Localize a classe no CSS usando Ctrl+F no arquivo
+  3. Se for ajuste geral (desktop e mobile): edite FORA dos blocos @media
+  4. Se for só mobile: edite DENTRO de @media (max-width: 768px)
+  5. Teste no Stylus antes de salvar no OJS
+  6. Para simular telas menores:
+       DevTools -> ícone de dispositivo móvel (Toggle device toolbar)
+       -> selecione largura desejada
+
+DICA DE VARIÁVEIS:
+Todos os valores do :root são reutilizáveis.
+Para mudar a cor de destaque em todo o site, basta alterar:
+  --accent: #1f2f70
+para qualquer outra cor — tudo que usa var(--accent) muda automaticamente.
